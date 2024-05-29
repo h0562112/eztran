@@ -158,8 +158,26 @@
                                     <div>2024 創準整合數位科技教育訓練 課程共筆</div>
                                 </td>
                                 <td>
-                                    <a class="atag" href="https://docs.google.com/document/d/1XoDpeQ7PctZcUOdCNdqRBhy4BbZbhj0Rxvqx4m2o1Sc/edit?usp=sharing"
+                                    <a class="atag"
+                                        href="https://docs.google.com/document/d/1XoDpeQ7PctZcUOdCNdqRBhy4BbZbhj0Rxvqx4m2o1Sc/edit?usp=sharing"
                                         target="_blank">https://docs.google.com/document/d/1XoDpeQ7PctZcUOdCNdqRBhy4BbZbhj0Rxvqx4m2o1Sc/edit?usp=sharing</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    4
+                                </td>
+                                <td>
+                                    <div>2024 創準整合數位科技教育訓練 課程共筆</div>
+                                </td>
+                                <td>
+                                    <div class="code">
+                                        DB_HOST=220.132.127.152<br>
+                                        DB_PORT=3307<br>
+                                        DB_NAME=240529eztrainprogram_dev<br>
+                                        DB_USER=240529eztrainprogram<br>
+                                        DB_PASSWORD=240529eztrainprogram
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
