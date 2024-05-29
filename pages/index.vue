@@ -1,4 +1,6 @@
-<template></template>
+<template>
+    <div>HELLO I'M HERE</div>
+</template>
 <script setup lang="js">
 onBeforeMount(() => {
     const router = useRouter();
