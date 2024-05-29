@@ -8,9 +8,9 @@
       <div class="ff dfcc">
         <div>
           <div class="dfcc pb-3">
-            <v-avatar rounded="0">
+            <!-- <v-avatar rounded="0">
               <v-img src="~/assets/img/LOGO.png"></v-img>
-            </v-avatar>
+            </v-avatar> -->
           </div>
           <div class="dfcc">
             <div style="width:80px">

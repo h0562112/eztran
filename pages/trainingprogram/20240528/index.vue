@@ -5,18 +5,19 @@
             <div class="noShrink">
                 <div class="text-h5 pb-3 font-weight-bold">
                     <button @click="pushTo('/trainingprogram')"><v-icon color="blue">mdi-chevron-left</v-icon></button>
-                    Syllabus
+                    課程規劃/環境設置
                 </div>
                 <div class="text-h5 pb-3">NUXT 3 Server side 團隊實作</div>
                 <div class="text-title pb-3">2024 創準整合數位科技教育訓練</div>
                 <div class="border-b"></div>
                 <div>
+                    <div class="text-title pb-3">資源列表</div>
                     <table class="fill-available thisTable text-subtitle-2">
                         <thead>
                             <tr>
                                 <th>項次</th>
-                                <th>主題</th>
-                                <th>日期</th>
+                                <th>標題</th>
+                                <th>備註</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -28,7 +29,7 @@
                                     <div>Gitlab</div>
                                 </td>
                                 <td>
-                                    <a class="atag" href="https://www.mysql.com/"
+                                    <a class="atag" href="https://about.gitlab.com/"
                                         target="_blank">https://about.gitlab.com/</a>
                                 </td>
                             </tr>
@@ -72,6 +73,18 @@
                                     5
                                 </td>
                                 <td>
+                                    <div>Node.js</div>
+                                </td>
+                                <td>
+                                    <a class="atag" href="https://nodejs.org/en"
+                                        target="_blank">https://nodejs.org/en</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    6
+                                </td>
+                                <td>
                                     <div>Nuxt3</div>
                                 </td>
                                 <td>
@@ -80,7 +93,7 @@
                             </tr>
                             <tr>
                                 <td>
-                                    6
+                                    7
                                 </td>
                                 <td>
                                     <div>MySQL (optional)</div>
@@ -92,7 +105,7 @@
                             </tr>
                             <tr>
                                 <td>
-                                    7
+                                    8
                                 </td>
                                 <td>
                                     <div>SSDT</div>
@@ -116,12 +129,13 @@
                 </div>
                 <div class="border-b"></div>
                 <div>
+                    <div class="text-title pb-3">專案資源</div>
                     <table class="fill-available thisTable text-subtitle-2">
                         <thead>
                             <tr>
                                 <th>項次</th>
-                                <th>主題</th>
-                                <th>日期</th>
+                                <th>標題</th>
+                                <th>備註</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,11 +144,124 @@
                                     1
                                 </td>
                                 <td>
-                                    <div>Gitlab</div>
+                                    <div>Git repo</div>
                                 </td>
                                 <td>
-                                    <a class="atag" href="https://www.mysql.com/"
-                                        target="_blank">https://about.gitlab.com/</a>
+                                    <a class="atag" href="https://gitlab.com/Estab-Zenith/240528_eztrainprogram.git"
+                                        target="_blank">https://gitlab.com/Estab-Zenith/240528_eztrainprogram.git</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    2
+                                </td>
+                                <td>
+                                    <div>Test Site</div>
+                                </td>
+                                <td>
+                                    <a class="atag" href="https://chen4.btagers.com/"
+                                        target="_blank">https://chen4.btagers.com/</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <div class="text-title pb-3">啟動專案</div>
+                    <table class="fill-available thisTable text-subtitle-2">
+                        <thead>
+                            <tr>
+                                <th>項次</th>
+                                <th>標題</th>
+                                <th>備註</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    1
+                                </td>
+                                <td>
+                                    <div>Git repo</div>
+                                </td>
+                                <td>
+                                    <div class="code">
+                                        git clone { YOUTR REPO } <br>
+                                        git commit -m { MESSAGE}<br>
+                                        git branch -b { NEW BRACH }<br>
+                                        git checkout { NEW BRACH }<br>
+                                        git fetch<br>
+                                        git pull<br>
+                                        git push
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    2
+                                </td>
+                                <td>
+                                    <div>Nuxt setup</div>
+                                </td>
+                                <td>
+                                    <div class="code">
+                                        yarn | npm install <br>
+                                        npm run dev <br>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <div class="text-title pb-3">疑難排解</div>
+                    <table class="fill-available thisTable text-subtitle-2">
+                        <thead>
+                            <tr>
+                                <th>項次</th>
+                                <th>標題</th>
+                                <th>備註</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    1
+                                </td>
+                                <td>
+                                    <div>Gitlab SSH issue</div>
+                                </td>
+                                <td>
+                                    <a class="atag" href="https://sinyilin.github.io/git/20191024/1014042378/"
+                                        target="_blank">https://sinyilin.github.io/git/20191024/1014042378/</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    2
+                                </td>
+                                <td>
+                                    <div>NUXT 3 相容性啟動問題</div>
+                                </td>
+                                <td>
+                                    <div>
+                                        yarn<br>
+                                        <a class="atag" href="https://yarnpkg.com/"
+                                            target="_blank">https://yarnpkg.com/</a>
+                                    </div>
+                                    <div>
+                                        nvm<br>
+                                        <a class="atag" href="https://www.casper.tw/development/2022/01/10/install-nvm/"
+                                            target="_blank">https://www.casper.tw/development/2022/01/10/install-nvm/</a>
+                                    </div>
+                                    <div>
+                                        rimraf (optional)<br>
+                                        <a class="atag" href="https://www.npmjs.com/package/rimraf/"
+                                            target="_blank">https://www.npmjs.com/package/rimraf/</a>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code></code>
                                 </td>
                             </tr>
                         </tbody>
