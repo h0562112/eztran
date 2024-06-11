@@ -4,6 +4,7 @@ let envFileName = (process.env.NODE_ENV === "development") ? ".env.dev" : `.env`
 import dotenv from "dotenv"
 const envs = dotenv.config({ path: envFileName }).parsed;
 
+
 const pool = createPool({
     host: envs.DB_HOST,
     port: envs.DB_PORT,

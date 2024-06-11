@@ -6,9 +6,200 @@ import { v4 as uuidv4 } from "uuid"; //生成uuid
 import moment from 'moment'; //時間處理
 
 export const test = async (event) => {
+    let testObj = null;
+    console.log(testObj?.name);
     return 'hello world haha!';
 }
 //
+export const getGameList = async (event) => {
+    //
+    const params = getQuery(event);
+    if (!params) { return createError({ statusCode: 422, message: '缺少必要欄位' }); };
+    //INPUT
+    let tablename = 'estateList';
+    let searchText = null;
+    let sortor = {
+        key: 'createTime',
+        desc: true
+    }
+    let paginationData = {
+        page: 1,
+        pageCount: 20
+    }
+    //OUTPUT
+    let totalPage = 1;
+    let totalCount = 0;
+    let filtedList = [];
+
+    //
+    let choosedcity = null;
+    if (_.has(params, 'choosedcity') && !!params.choosedcity) {
+        let parseData = () => {
+            if (_.isArray(params.choosedcity)) {
+                return choosedcity = params.choosedcity;
+            }
+            //
+            try {
+                let temp = JSON.parse(params.choosedcity);
+                if (_.isArray(temp)) {
+                    return choosedcity = temp;
+                }
+            } catch { }
+        }
+        parseData();
+    }
+    //解析Query需求
+    {
+        let parseQuery = () => {
+            if (params.searchText) {
+                searchText = params.searchText;
+                searchText = searchText.replace(/'/g, "''");
+                searchText = searchText.replace(/"/g, '""');
+            }
+            if (params.sortor) {
+                let q_sortor = null;
+                try {
+                    q_sortor = JSON.parse(params.sortor);
+                } catch { }
+                if (_.has(q_sortor, 'key')) {
+                    sortor.key = q_sortor.key;
+                }
+                if (_.has(q_sortor, 'desc')) {
+                    sortor.desc = `${q_sortor.desc}` == 'true';
+                }
+            }
+            if (params.paginationData) {
+                let q_paginationData = null;
+                try {
+                    q_paginationData = JSON.parse(params.paginationData);
+                } catch { }
+                if (_.has(q_paginationData, 'page')) {
+                    let page = parseInt(q_paginationData.page);
+                    if (!_.isNaN(page)) {
+                        paginationData.page = page;
+                    }
+                }
+                if (_.has(q_paginationData, 'pageCount')) {
+                    let pageCount = parseInt(q_paginationData.pageCount);
+                    if (!_.isNaN(pageCount)) {
+                        paginationData.pageCount = pageCount;
+                    }
+                }
+            }
+        }
+        parseQuery();
+    }
+    //取得資料
+    {
+        //取得用戶參與案件
+        let caseList = [];
+        {
+            let sql = `SELECT * FROM caseAdmins WHERE adminId = '${account_auth?.userId}'`;
+            let sres = await query(sql);
+            if (!sres.Success) return createError({ statusCode: 422, message: sres.Msg });
+            if (!_.isArray(sres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
+            caseList = sres.Data;
+
+        }
+        let sqlScript = (func = null) => {
+            //COL 欄位
+            let listValue = `*`;
+            //
+            let baseQuery = `
+                SELECT ${func == 'count(*)' ? 'count(*)' : listValue}
+                FROM ${tablename}`;
+            //搜尋條件
+            let searchQuery = `
+                WHERE 
+                (
+                    casename like '%${searchText}%'
+                )
+                AND isAlive = '1'
+                `;//
+            if (!searchText) {
+                searchQuery = `WHERE isAlive = '1'`;//
+            }
+            //
+            if (_.isArray(choosedcity) && !!choosedcity.length) {
+                let tagList = [];
+                _.map(choosedcity, item => {
+                    tagList.push(`address like '%${item}%'`)
+                });
+                searchQuery = `${searchQuery}${!!searchQuery ? ' AND ' : 'WHERE '} (${tagList.join('OR ')})`;
+            }
+            //排序條件
+            let getOrder = () => {
+                if (!_.has(sortor, 'key')) return '';
+                if (sortor.key == 'createTime') {
+                    return `ORDER BY createTime ${sortor.desc ? 'DESC' : ''}`
+                }
+                return '';
+            }
+            let orderQuery = getOrder();
+            //分頁
+            let getPageOuery = () => {
+                if (!_.has(paginationData, 'pageCount')) return '';
+                if (!_.has(paginationData, 'page')) return '';
+                //
+                let pageCount = parseInt(paginationData.pageCount);
+                let page = parseInt(paginationData.page);
+                if (_.isNaN(pageCount) || _.isNaN(page)) return '';
+                //
+                let offset = (page - 1) * pageCount;
+                if (offset < 0) offset = 0;
+                //
+                return `LIMIT ${pageCount} OFFSET ${offset}`
+            }
+            let pageQuery = getPageOuery();
+
+            //取得資料總量
+            if (func == 'count(*)') return [baseQuery, searchQuery].join(" ");
+            //取得資料詳細
+            return [baseQuery, searchQuery, orderQuery, pageQuery].join(" ");
+        }
+        //GET TOTAL PAGE
+        {
+            let getTotalCount = async () => {
+                let sres = await query(sqlScript('count(*)'));
+                if (!sres.Success) return 0;
+                if (!_.isArray(sres.Data) || !sres.Data.length) return 0;
+                if (!_.has(sres.Data[0], 'count(*)')) return 0;
+                let data = sres.Data[0];
+                let count = parseInt(data['count(*)']);
+                if (_.isNaN(count)) return 0;
+                return count;
+            }
+            totalCount = await getTotalCount();
+            //
+            let getTotalPage = (totalCount) => {
+                if (paginationData.pageCount < 1) return 1;
+                //
+                let totalPage = 0;
+                let total = totalCount;
+                while (total > 0) {
+                    totalPage++;
+                    total -= paginationData.pageCount;
+                    if (totalPage > 10000) {
+                        break;
+                    }
+                }
+                return totalPage;
+            }
+            //
+            totalPage = getTotalPage(totalCount);
+        }
+        //Get DATALIST
+        {
+            let sres = await query(sqlScript());
+
+            if (!sres.Success) return createError({ statusCode: 422, message: sres.Msg });
+            if (!_.isArray(sres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
+            filtedList = sres.Data;
+        }
+    }
+
+    return { datas: filtedList, totalPage: totalPage, totalCount: totalCount }
+}
 export const createGame = async (event) => {
     const body = await readBody(event);
     if (!_.has(body, 'name') || !body.name) {
@@ -188,6 +379,7 @@ const insert_or_update = async (item, tableName) => {
         let sql = `insert into ${tableName} (${itemKeys.join(', ')}) values(${values.join(', ')})`;
         let insertRes = await query(sql, params);
         if (!insertRes.Success) return insertRes;
+        return { Success: true, Data: null, Msg: null };
     }
     //UPDATE
     let values = [];
