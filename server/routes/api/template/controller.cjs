@@ -1,5 +1,6 @@
 import { query } from "../../../db/dbclient.cjs"
 import { getQuery, readBody, createError } from "h3"
+import MD5 from "crypto-js/md5.js"; //231213 要加.js 不然load出問題
 
 import _ from "lodash"; //常用工具库
 import { v4 as uuidv4 } from "uuid"; //生成uuid
@@ -7,7 +8,7 @@ import moment from 'moment'; //時間處理
 
 export const test = async (event) => {
     let testObj = null;
-    console.log(testObj?.name);
+
     return 'hello world haha!';
 }
 //
@@ -276,38 +277,53 @@ export const getGameDeatail = async (event) => {
     return { data: data };
 }
 export const updateGame = async (event) => {
-    //
-    const body = await readBody(event);
-    if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
-    if (!_.has(body, 'id') || !body.id) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
-    //定義參數
-    let id = body.id;
-    //
-    let tablename = 'GameList';
-    let data = null;
-    //確認資料存在
-    {
-        let sql = `SELECT * FROM ${tablename} WHERE id = '${id}' LIMIT 1`;
+    let func = async () => {
         //
-        let sres = await query(sql);
-        if (!sres.Success) return createError({ statusCode: 422, message: sres.Msg });
-        if (!_.isArray(sres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
-        if (!sres.Data.length) return createError({ statusCode: 422, message: '查無資料' });
+        const body = await readBody(event);
+        if (!body) { return { Success: false, Data: null, Msg: '缺少必要欄位' } }
+        if (!_.has(body, 'id') || !body.id) { return { Success: false, Data: null, Msg: '缺少必要欄位' } }
+        //定義參數
+        let id = body.id;
         //
-        data = sres.Data[0];
-    }
-    //更新資料
-    let updatadata = { ...body };
-    {
-        updatadata.id = data.id;
-        updatadata.updateTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
-        if (_.has(updatadata, 'createTime') && !!updatadata.createTime) {
-            delete updatadata['createTime']
+        let tablename = 'GameList';
+        let data = null;
+        //確認資料存在
+        {
+            let sql = `SELECT * FROM ${tablename} WHERE id = '${id}' LIMIT 1`;
+            //
+            let sres = await query(sql);
+            if (!sres.Success) return sres;
+            if (!_.isArray(sres.Data)) return { Success: false, Data: null, Msg: '無法辨識的資料庫回傳值' };
+            if (!sres.Data.length) return { Success: false, Data: null, Msg: '查無資料' };
+            //
+            data = sres.Data[0];
         }
-        let addRes = await insert_or_update(updatadata, tablename);
-        if (!addRes.Success) { return createError({ statusCode: 422, message: addRes.Msg }); }
+        //更新資料
+        let updatadata = { ...body };
+        {
+            updatadata.id = data.id;
+            updatadata.updateTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
+            if (_.has(updatadata, 'createTime') && !!updatadata.createTime) {
+                delete updatadata['createTime']
+            }
+            let addRes = await insert_or_update(updatadata, tablename);
+            if (!addRes.Success) addRes;
+        }
+        //CHANGE LOG
+        {
+            let cres = await changeLog(event, 'updateGame');
+            if (!cres.Success) cres;
+        }
+        return { Success: false, Data: updatadata, Msg: null };
     }
-    return updatadata;
+    let res = await func();
+    if (!res.Success) {
+        //ERROR LOG
+        let cres = await errorLog(event, res, 'updateGame');
+        if (!cres.Success) { return createError({ statusCode: 422, message: cres.Msg }); };
+        return createError({ statusCode: 422, message: res.Msg, stack: null });
+    }
+    return res.Data;
 }
 export const deleteGame = async (event) => {
     //
@@ -330,7 +346,178 @@ export const deleteGame = async (event) => {
     }
     return updatadata;
 }
-
+//backadmin
+export const loginSystem = async (event) => {
+    const body = await readBody(event);
+    if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!body.account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!body.pw) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    //
+    let account = body.account;
+    let pw = body.pw;
+    //資料檢核
+    let data = null;
+    {
+        let gres = await query(`SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${account}' AND pw = '${pw}' LIMIT 1`);
+        if (!gres.Success) return createError({ statusCode: 422, message: gres.Msg });
+        if (!_.isArray(gres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
+        if (!gres.Data.length) return createError({ statusCode: 422, message: '查無此帳號，請確保帳號密碼無誤' });
+        data = gres.Data[0];
+    }
+    //登入
+    let lastloginTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
+    let accessToken = MD5(`${lastloginTime}-${data.account}`).toString().toUpperCase();
+    {
+        let new_data = {};
+        new_data.id = data.id;
+        new_data.lastloginTime = lastloginTime;
+        new_data.accessToken = accessToken;
+        //
+        let updateRes = await insert_or_update(new_data, 'backadminList');
+        if (!updateRes.Success) { return createError({ statusCode: 422, message: updateRes.Msg }); }
+    }
+    return { account: account, accessToken: accessToken }
+}
+export const checkLoginToken = async (event) => {
+    const body = await readBody(event);
+    if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!body.login_account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!body.login_accessToken) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    let data = null;
+    //可重複登入
+    {
+        let sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' LIMIT 1`;
+        //不可重複登入
+        {
+            sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
+        }
+        let gres = await query(sql);
+        if (!gres.Success) return createError({ statusCode: 422, message: gres.Msg });
+        if (!_.isArray(gres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
+        if (!gres.Data.length) return createError({ statusCode: 422, message: '登入資訊有誤' });
+        data = gres.Data[0];
+    }
+    return;
+}
+export const addbackadmin = async (event) => {
+    const body = await readBody(event);
+    if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!_.has(body, 'name') || !body.name) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!_.has(body, 'account') || !body.account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    if (!_.has(body, 'pw') || !body.pw) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
+    let tablename = 'backadminList';
+    let account = body.account;
+    //檢核資料
+    {
+        let checkExist = async () => {
+            let gres = await query(`SELECT * FROM ${tablename} WHERE account = '${account}' AND isAlive = '1' LIMIT 1`);
+            if (!gres.Success) return createError({ statusCode: 422, message: gres.Msg });
+            if (!_.isArray(gres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
+            let check = !!gres.Data.length;
+            return { Success: true, Data: check, Msg: null }
+        }
+        let cres = await checkExist();
+        if (`${cres.Data}` == 'true') return createError({ statusCode: 422, message: '已有相同名稱資料' });
+    }
+    //新增資料
+    let data = null;
+    {
+        let dataId = uuidv4();
+        let createTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
+        data = {
+            id: dataId,
+            //
+            createTime: createTime,
+            updateTime: createTime,
+            lastloginTime: null,
+            accessToken: null,
+            //
+            account: body.account,
+            pw: body.pw,
+            //
+            name: body.account,
+            describ: body.describ,
+            //        
+            isAlive: '1' //資料鎖定與否
+        }
+        let addRes = await insert_or_update(data, tablename);
+        if (!addRes.Success) return createError({ statusCode: 422, message: addRes.Msg });
+    }
+    //changeLog
+    {
+        let cres = await changeLog(event, 'addbackadmin');
+        if (!cres.Success) { return createError({ statusCode: 422, message: cres.Msg }); }
+    }
+    //
+    return;
+}
+//changeLog
+const changeLog = async (event, action = null) => {
+    const body = await readBody(event);
+    // if (!body) { return { Success: false, Data: null, Msg: '缺少權限紀錄欄位' } }
+    // if (!_.has(body, 'account') || !body.account) { return { Success: false, Data: null, Msg: '缺少權限紀錄欄位' } }
+    let tablename = 'changeLog';
+    let account = body.account;
+    //
+    if (_.has(body, 'content') && !!body.content && body.content.length > (1000 * 1)) {
+        delete body['content'];
+    }
+    if (_.has(body, 'description') && !!body.description && body.description.length > (1000 * 1)) {
+        delete body['description'];
+    }
+    //
+    {
+        let ip = event.req.headers['x-forwarded-for'] || event.req.socket.remoteAddress
+        let path = !!event?.path ? event.path : null;
+        let data = {
+            id: uuidv4(),
+            createTime: moment().utcOffset(0).format('YYYYMMDDHHmmss.sss'),
+            dataid: !!body?.id ? body.id : null,
+            //
+            ip: ip,
+            account: account,
+            controller: path,
+            req: JSON.stringify(body),
+            action: !!action ? action : null
+        }
+        let addRes = await insert_or_update(data, tablename);
+        if (!addRes.Success) { return addRes; }
+    }
+    return { Success: true, Data: null, Msg: null }
+}
+//errorLog
+const errorLog = async (event, res, action = null) => {
+    const body = await readBody(event);
+    // if (!body) { return { Success: false, Data: null, Msg: '缺少權限紀錄欄位' } }
+    let tablename = 'errorLog';
+    //
+    if (_.has(body, 'content') && !!body.content && body.content.length > (1000 * 1)) {
+        delete body['content'];
+    }
+    if (_.has(body, 'description') && !!body.description && body.description.length > (1000 * 1)) {
+        delete body['description'];
+    }
+    //
+    {
+        let ip = event.req.headers['x-forwarded-for'] || event.req.socket.remoteAddress
+        let path = !!event?.path ? event.path : null;
+        let data = {
+            id: uuidv4(),
+            createTime: moment().utcOffset(0).format('YYYYMMDDHHmmss.sss'),
+            dataid: !!body?.line_uid ? body.line_uid : null,
+            //
+            ip: ip,
+            controller: path,
+            req: JSON.stringify(body),
+            res: JSON.stringify(res),
+            action: !!action ? action : null
+        }
+        let addRes = await insert_or_update(data, tablename);
+        console.log('addRes: ', addRes);
+        if (!addRes.Success) { return addRes; }
+    }
+    return { Success: true, Data: null, Msg: null }
+}
 //
 const insert_or_update = async (item, tableName) => {
     if (!tableName) return { Success: false, Data: null, Msg: '缺少tableName' };
