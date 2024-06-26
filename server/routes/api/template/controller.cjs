@@ -364,6 +364,7 @@ export const loginSystem = async (event) => {
         if (!gres.Data.length) return createError({ statusCode: 422, message: '查無此帳號，請確保帳號密碼無誤' });
         data = gres.Data[0];
     }
+
     //登入
     let lastloginTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
     let accessToken = MD5(`${lastloginTime}-${data.account}`).toString().toUpperCase();
@@ -376,6 +377,21 @@ export const loginSystem = async (event) => {
         let updateRes = await insert_or_update(new_data, 'backadminList');
         if (!updateRes.Success) { return createError({ statusCode: 422, message: updateRes.Msg }); }
     }
+    {
+        let createTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
+        let expiredTime = createTime.add(15, 'minutes');
+        let newToken = {
+            id: uuidv4(),
+            createTime: createTime,
+            accessToken: accessToken,
+            expiredTime: expiredTime,
+            adminId: data.id,
+            //
+            isAlive: '1'
+        }
+        let addRes = await insert_or_update(newToken, 'backadminTokenList');
+        if (!addRes.Success) { return createError({ statusCode: 422, message: addRes.Msg }); }
+    }
     return { account: account, accessToken: accessToken }
 }
 export const checkLoginToken = async (event) => {
@@ -384,10 +400,22 @@ export const checkLoginToken = async (event) => {
     if (!body.login_account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     if (!body.login_accessToken) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     let data = null;
-    //可重複登入
     {
-        let sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' LIMIT 1`;
-        //不可重複登入
+        let current = moment();
+        //可多機登入
+        let sql = `SELECT * FROM backadminList 
+        LEFT JOIN (
+        SELECT * FROM backadminTokenList 
+        WHERE backadminTokenList.isAlive = '1' 
+        AND expiredTime < '${current.utcOffset(0).format('YYYYMMDDHHmmss.sss')}'
+        ORDER BY createTime DESC LIMIT 3
+        ) backadminTokenList ON backadminList.id = backadminTokenList.adminId
+        WHERE backadminList.isAlive = '1' 
+        AND backadminTokenList.accessToken = '${body.login_accessToken}'
+        AND backadminTokenList.account = '${body.login_account}' 
+        LIMIT 1`;
+        
+        //不可多機登入
         {
             sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
         }
