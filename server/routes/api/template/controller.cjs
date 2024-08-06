@@ -414,11 +414,11 @@ export const checkLoginToken = async (event) => {
         AND backadminTokenList.accessToken = '${body.login_accessToken}'
         AND backadminTokenList.account = '${body.login_account}' 
         LIMIT 1`;
-        
+
         //不可多機登入
-        {
-            sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
-        }
+        // {
+        //     sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
+        // }
         let gres = await query(sql);
         if (!gres.Success) return createError({ statusCode: 422, message: gres.Msg });
         if (!_.isArray(gres.Data)) return createError({ statusCode: 422, message: '無法辨識的資料庫回傳值' });
@@ -426,6 +426,9 @@ export const checkLoginToken = async (event) => {
         data = gres.Data[0];
     }
     return;
+}
+const docheckLoginToken = async (event) => {
+
 }
 export const addbackadmin = async (event) => {
     const body = await readBody(event);
