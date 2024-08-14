@@ -1,5 +1,6 @@
 <template>
     <v-app>
+    empty layout
         <slot></slot>
     </v-app>
 </template>

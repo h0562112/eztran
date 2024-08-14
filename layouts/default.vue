@@ -1,6 +1,8 @@
 <template>
   <v-app sytle="width:100vw" v-resize="onresize" v-scroll="onScroll">
+  default layout
     <div class="dfco" :style="`min-height:${fullheight};${fix100vh ? `height:${fullheight}` : ''}`">
+
       <slot></slot>
     </div>
     <!-- LOAD COVER -->

@@ -1,6 +1,7 @@
 <template>
   <div>
-id2
+
+index page
   </div>
 </template>
 
@@ -16,6 +17,7 @@ const counterStore = useCounterStore();
 
 const go = function () {
     let router = useRouter();
+    console.log('router: ', router);
 
     // router.push({ path: '/store/store2z' })
     // router.push('/store/store2')
@@ -27,12 +29,12 @@ const go = function () {
 
 
 onMounted(() => {
-
   let route = useRoute()
-
-  
-
+  console.log('route: ', route);
   console.log('mounted page id', route.params.id)
+
+   let router = useRouter();
+    console.log('router: ', router);
     
 })
 </script>

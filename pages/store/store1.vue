@@ -1,6 +1,6 @@
 <template>
-  <div>
-
+  <div style="border: 3px solid black;">
+   
 
     page1 <br>
 
@@ -27,12 +27,18 @@ const counterStore = useCounterStore();
 
 
 const go = function () {
+
+  definePageMeta({
+    layout: 'backadmin'
+  })
+
+
     let route = useRoute()
     let router = useRouter();
 
     // router.push({ path: '/store/21312312/store2' })
     // router.push('/store/store2')
-    router.push({ name: 'store-id-id2', params: { id: '33333',id2:'123445' }  })
+    router.push({ name: 'store-id-id2', params: { id: '33333',id2:'123445' }, query: { a: '1', b: '2'}  })
 
     // window.open('/store/store2', '_blank')
     // window.open('/store/store2', '_self')
