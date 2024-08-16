@@ -1,9 +1,15 @@
 <template>
 
-    component<br/>
-        <v-btn @click="add" text color="primary"  >++</v-btn><br/>
+    <div style="background-color: grey">
+   c_var {{ c_var }} <br>
 
-        <comp2></comp2><br/>
+   p_var {{ props.p1 }} <br>
+  p_var2  {{ props.p2}} <br>
+
+  <v-btn @click="add">add</v-btn>"
+
+
+    </div>
 
 
 </template>
@@ -12,9 +18,37 @@
 
 import comp2 from '~/components/comp2.vue'
 
-const d1 = ref(1)
+// :
+const props = defineProps({
+    p1: {},
+    p2: {}
+})
+
+
+
+
+
+
+
+const c_var = ref(1)
 
     const add = function () {
-        d1.value++
+        emit('adddd')
     }
+
+    
+// @
+const emit = defineEmits(["adddd"])
+
+
+
+
+
+
+defineExpose({
+    c_var,
+    add
+})
+
+
 </script>
