@@ -8,8 +8,17 @@ import moment from 'moment'; //時間處理
 
 export const test = async (event) => {
     let testObj = null;
-
-    return 'hello world haha!';
+    
+    let result = await new Promise((resolve) => {
+        
+        setTimeout(() => {
+            resolve(5555)
+        }, 5000)
+    })
+    
+    
+    console.log('after await', result)
+    return result;
 }
 //
 export const getGameList = async (event) => {

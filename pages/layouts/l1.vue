@@ -13,6 +13,9 @@
 
 
     <v-btn @click="check()">check</v-btn>"
+
+
+    <v-btn @click="print_var()">print_var</v-btn>"
     
     </div>
 </template>
@@ -32,6 +35,10 @@
 const p_var = ref(100)
 const comp111 = ref(222)
 import comp1 from '~/components/comp1.vue'
+
+
+
+const {  print_var } = useGame()
 
 
 const check = function () {
