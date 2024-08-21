@@ -1,5 +1,5 @@
 import { query } from "../../../db/dbclient.cjs"
-import { getQuery, readBody, createError } from "h3"
+import { getQuery, readBody, createError, setHeader } from "h3"
 import MD5 from "crypto-js/md5.js"; //231213 要加.js 不然load出問題
 
 import _ from "lodash"; //常用工具库
@@ -8,14 +8,24 @@ import moment from 'moment'; //時間處理
 
 export const test = async (event) => {
     let testObj = null;
+
+
+    setHeader(event, "Access-Control-Allow-Origin", "*");
+    // 允許的 HTTP 方法
+    setHeader(
+        event,
+        "Access-Control-Allow-Methods",
+        "GET,POST,PUT,DELETE,OPTIONS"
+    );
+    // 允許的 headers
+    setHeader(event, "Access-Control-Allow-Headers", "*");
     
     let result = await new Promise((resolve) => {
         
         setTimeout(() => {
             resolve(5555)
-        }, 5000)
+        }, 2000)
     })
-    
     
     console.log('after await', result)
     return result;

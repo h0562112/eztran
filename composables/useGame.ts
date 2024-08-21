@@ -5,7 +5,7 @@ export default function() {
 
     return {
         getTest() {
-            return $fetch('/api/template/test', {})
+            return $fetch('http://192.168.2.71:3030/api/template/test', {})
         },
 
         add_var() {
