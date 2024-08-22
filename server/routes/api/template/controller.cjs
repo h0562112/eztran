@@ -368,6 +368,7 @@ export const deleteGame = async (event) => {
 //backadmin
 export const loginSystem = async (event) => {
     const body = await readBody(event);
+    console.log('body: ', body);
     if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     if (!body.account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     if (!body.pw) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
@@ -397,13 +398,13 @@ export const loginSystem = async (event) => {
         if (!updateRes.Success) { return createError({ statusCode: 422, message: updateRes.Msg }); }
     }
     {
-        let createTime = moment().utcOffset(0).format('YYYYMMDDHHmmss.sss');
+        let createTime = moment().utcOffset(0);
         let expiredTime = createTime.add(15, 'minutes');
         let newToken = {
             id: uuidv4(),
-            createTime: createTime,
+            createTime: createTime.format('YYYYMMDDHHmmss.sss'),
             accessToken: accessToken,
-            expiredTime: expiredTime,
+            expiredTime: expiredTime.format('YYYYMMDDHHmmss.sss'),
             adminId: data.id,
             //
             isAlive: '1'
@@ -415,6 +416,7 @@ export const loginSystem = async (event) => {
 }
 export const checkLoginToken = async (event) => {
     const body = await readBody(event);
+    console.log('body: ', body);
     if (!body) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     if (!body.login_account) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
     if (!body.login_accessToken) { return createError({ statusCode: 422, message: '缺少必要欄位' }); }
@@ -422,21 +424,23 @@ export const checkLoginToken = async (event) => {
     {
         let current = moment();
         //可多機登入
-        let sql = `SELECT * FROM backadminList 
-        LEFT JOIN (
-        SELECT * FROM backadminTokenList 
-        WHERE backadminTokenList.isAlive = '1' 
-        AND expiredTime < '${current.utcOffset(0).format('YYYYMMDDHHmmss.sss')}'
-        ORDER BY createTime DESC LIMIT 3
-        ) backadminTokenList ON backadminList.id = backadminTokenList.adminId
-        WHERE backadminList.isAlive = '1' 
-        AND backadminTokenList.accessToken = '${body.login_accessToken}'
-        AND backadminTokenList.account = '${body.login_account}' 
-        LIMIT 1`;
-
+        // let sql = `SELECT * FROM backadminList 
+        // LEFT JOIN (
+        //     SELECT * FROM backadminTokenList 
+        //     WHERE backadminTokenList.isAlive = '1' 
+        //     AND expiredTime < '${current.utcOffset(0).format('YYYYMMDDHHmmss.sss')}'
+        //     ORDER BY createTime DESC LIMIT 3
+        //     ) backadminTokenList ON backadminList.id = backadminTokenList.adminId
+        //     WHERE backadminList.isAlive = '1' 
+        //     AND backadminTokenList.accessToken = '${body.login_accessToken}'
+        //     AND backadminTokenList.account = '${body.login_account}' 
+        //     LIMIT 1`;
+            
+        //     console.log('sql: ', sql);
         //不可多機登入
         // {
-        //     sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
+            let sql = `SELECT * FROM backadminList WHERE isAlive = '1' AND account = '${body.login_account}' AND accessToken = '${body.login_accessToken}' LIMIT 1`
+            console.log('sql: ', sql);
         // }
         let gres = await query(sql);
         if (!gres.Success) return createError({ statusCode: 422, message: gres.Msg });
@@ -444,7 +448,7 @@ export const checkLoginToken = async (event) => {
         if (!gres.Data.length) return createError({ statusCode: 422, message: '登入資訊有誤' });
         data = gres.Data[0];
     }
-    return;
+    return data;
 }
 const docheckLoginToken = async (event) => {
 
