@@ -12,7 +12,7 @@
 
     <div class="d-flex flex-row" style="background-color: white; flex-grow: 1;">
       <div
-        class="redColor qColor"
+        class=" qColor"
         style="
           
           flex-basis: 0.1;
@@ -20,15 +20,25 @@
           max-width: 300px;
         ">
 
-        <div class="pa-5"><v-btn class="elevation-5">1</v-btn></div>
-        <div class="ma-5"><v-btn>1</v-btn></div>
-        <div class="pt-3"><v-btn>1</v-btn></div>
-        <div class="mb-2"><v-btn>1</v-btn></div>
-        <div class="pl-5"><v-btn>1</v-btn></div>
-        <div class="mr-8"><v-btn>1</v-btn></div>
-        <div class="px-5"><v-btn>1</v-btn></div>
-        <div class="my-4"><v-btn>1</v-btn></div>
-      
+
+        <v-list lines="two" >
+            <v-list-item
+
+                
+                v-ripple
+                class="cursor-pointer my-2 "
+                style="background-color: #dddddd"
+                v-for="menu in menus"
+                :key="menu"
+                :title="menu.label"
+                subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit"
+
+                :href="menu.link"
+                target="_blank"
+
+            ></v-list-item>
+        </v-list>
+
 
       </div>
       <div class="border-double rounded-lg cursor-pointer" style="flex-grow: 1">content</div>
@@ -37,6 +47,20 @@
 </template>
 
 
+
+<script setup>
+
+const menus = ref([
+    { label: 'menu1', link: 'https://google.com?a=1'},
+    { label: 'menu2', link: 'https://google.com?a=2'},
+    { label: 'menu3', link: 'https://google.com?a=3'},
+    { label: 'menu4', link: 'https://google.com?a=4'},
+    { label: 'menu5', link: 'https://google.com?a=5'},
+    { label: 'menu6', link: 'https://google.com?a=6'}
+])
+
+
+</script>
 
 <style>
 

@@ -1,19 +1,40 @@
 <template>
-
+<!-- 
     <div style="display: flex; flex-direction: column">
         
 
-        帳號1
-        <v-text-field v-model="account" ></v-text-field>
-
         
-        密碼1
-        <v-text-field v-model="password" ></v-text-field>
 
 
+    </div> -->
 
-        <v-btn @click="submitLogin()">登入</v-btn>
+    <div class="d-flex" style="width: 100vw; height: 100vh;">
+        <v-card style="width: 400px;  margin: auto">
+            <v-card-title style="background-color: #da763d; color: white">後台管理</v-card-title>
 
+            <!-- <v-card-subtitle class="mt-2">登入</v-card-subtitle> -->
+            
+            <v-card-text class="pt-5">
+
+
+                <v-text-field variant="outlined" v-model="account" :clearable="true" label="帳號"></v-text-field>
+
+                <v-text-field variant="outlined" v-model="password" clearable clear-icon="$plus" type="password" label="密碼"></v-text-field>
+
+            </v-card-text>
+
+            <v-divider class="pb-5"></v-divider>
+
+
+            <v-card-actions>
+
+                    <!-- <div style="flex-grow: 1;"></div> -->
+                    <v-spacer></v-spacer>
+
+                    <v-btn variant="tonal" @click="submitLogin" position="right" class="mr-4" color="grey">取消</v-btn>
+                    <v-btn variant="tonal" @click="submitLogin" position="right" color="primary">登入</v-btn>
+            </v-card-actions>
+        </v-card>
 
     </div>
 
