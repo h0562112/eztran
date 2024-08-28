@@ -33,6 +33,8 @@
 
                     <v-btn variant="tonal" @click="submitLogin" position="right" class="mr-4" color="grey">取消</v-btn>
                     <v-btn variant="tonal" @click="submitLogin" position="right" color="primary">登入</v-btn>
+
+                    <v-btn variant="tonal" @click="dktLogin" position="right" color="primary">迪卡儂登入</v-btn>
             </v-card-actions>
         </v-card>
 
@@ -87,6 +89,11 @@ const submitLogin = async () => {
     let router = useRouter()
 
     router.push({ path: '/auth' })
+}
+
+
+const dktLogin = function () {
+    window.open('https://api-global.preprod.decathlon.net/connect/oauth/authorize?client_id=4e7311c5-3d8e-433a-8214-b8b12af1a427&redirect_uri=http://localhost/auth/callback/dkt&response_type=code', '_self')
 }
 
 </script>
